@@ -20,17 +20,25 @@ class CdkLambdaRdsProxyStack(Stack):
         )
 
         # RDSのセキュリティグループの作成
-        rds_security_group = ec2.SecurityGroup(self, "RdsSecurityGroup",
+        rds_security_group = ec2.SecurityGroup(
+            self, 
+            "RdsSecurityGroup",
             vpc=vpc,
             description="Allow Lambda access to RDS"
         )
 
         # RDSの作成
-        rds_instance = rds.DatabaseInstance(self, "RDS",
-            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_14_5),
+        rds_instance = rds.DatabaseInstance(
+            self, 
+            "RDS",
+            engine=rds.DatabaseInstanceEngine.postgres(
+                version=rds.PostgresEngineVersion.VER_14_5
+            ),
             vpc=vpc,
             security_groups=[rds_security_group],
-            instance_type=ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL),
+            instance_type=ec2.InstanceType.of(
+                ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.SMALL
+            ),
             allocated_storage=20,
             removal_policy=RemovalPolicy.DESTROY,
             deletion_protection=False,
@@ -40,13 +48,17 @@ class CdkLambdaRdsProxyStack(Stack):
         )
 
         # Lambdaのセキュリティグループの作成
-        lambda_security_group = ec2.SecurityGroup(self, "LambdaSecurityGroup",
+        lambda_security_group = ec2.SecurityGroup(
+            self, 
+            "LambdaSecurityGroup",
             vpc=vpc,
             description="Allow Lambda to access RDS Proxy"
         )
 
         # RDS Proxyの作成
-        rds_proxy = rds.DatabaseProxy(self, "RDSProxy",
+        rds_proxy = rds.DatabaseProxy(
+            self, 
+            "RDSProxy",
             proxy_target=rds.ProxyTarget.from_instance(rds_instance),
             vpc=vpc,
             security_groups=[lambda_security_group],
@@ -58,12 +70,15 @@ class CdkLambdaRdsProxyStack(Stack):
         
         # psycopg2のLambda Layer
         psycopg2_layer = _lambda.LayerVersion.from_layer_version_arn(
-            self, "Psycoog2Layer",
+            self, 
+            "Psycoog2Layer",
             'arn:aws:lambda:ap-northeast-1:898466741470:layer:psycopg2-py38:1'
         )
         
         # Lambda関数の作成
-        lambda_function = _lambda.Function(self, "LambdaFunction",
+        lambda_function = _lambda.Function(
+            self, 
+            "LambdaFunction",
             runtime=_lambda.Runtime.PYTHON_3_8,
             handler="lambda_function.handler",
             code=_lambda.Code.from_asset("cdk_lambda_rds_proxy/lambda"),
